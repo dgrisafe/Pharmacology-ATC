@@ -36,7 +36,7 @@ df_atc_1anatomical <- tibble("code" = unlist(xml_df_atc_1anatomical[[2]] %>% str
   mutate(description = str_to_title(description)) %>%
   # add column of links for 1st classification of anatomical classes
   bind_cols(
-    links = str_replace(
+    link = str_replace(
       xml_whocc_atc %>% html_elements("b") %>% html_element("a") %>% html_attr("href"), 
       pattern = "^\\.\\/", 
       replacement = url_whocc_atc
@@ -75,7 +75,7 @@ whocc_atc_2therapeutic <- function(url_2therapeutic = "https://www.whocc.no/atc_
     mutate(description = str_to_title(description)) %>% 
     # add column of links for 1st classification of anatomical classes
     bind_cols(
-      links = str_replace(
+      link = str_replace(
         xml_atc_2therapeutic %>% html_elements("b") %>% html_element("a") %>% html_attr("href"), 
         pattern = "^\\.\\/", 
         replacement = url_whocc_atc
@@ -84,19 +84,19 @@ whocc_atc_2therapeutic <- function(url_2therapeutic = "https://www.whocc.no/atc_
 
 }
 
-df_atc_2therapeutic <- bind_rows(lapply(df_atc_1anatomical$links, whocc_atc_2therapeutic))
+df_atc_2therapeutic <- bind_rows(lapply(df_atc_1anatomical$link, whocc_atc_2therapeutic))
 ```
 
 ## 3. Pharmacological Subgroup
 
 ```{r}
-df_atc_3pharmacological <- bind_rows(lapply(paste0(df_atc_2therapeutic$links,"/"), whocc_atc_2therapeutic))
+df_atc_3pharmacological <- bind_rows(lapply(paste0(df_atc_2therapeutic$link,"/"), whocc_atc_2therapeutic))
 ```
 
 ## 4. Chemical Subgroup
 
 ```{r}
-df_atc_4chemicalsubgroup <- bind_rows(lapply(df_atc_3pharmacological$links, whocc_atc_2therapeutic))
+df_atc_4chemicalsubgroup <- bind_rows(lapply(df_atc_3pharmacological$link, whocc_atc_2therapeutic))
 ```
 
 ## 5. Chemical Substance
@@ -109,7 +109,7 @@ whocc_atc_5chemicalsubstance <- function(url_5chemicalsubstance = "https://www.w
   
   # initialize an empty row, will be overwritten if relevant data found
   # will return empty row if error found
-  atc_row <- tibble(codes = NA, description = NA, link = url_5chemicalsubstance)
+  atc_row <- tibble(code = NA, description = NA, link = url_5chemicalsubstance)
   
   xml_5chemicalsubstance <- read_html(url_5chemicalsubstance, encoding = "UTF-8")
   
@@ -143,7 +143,7 @@ whocc_atc_5chemicalsubstance <- function(url_5chemicalsubstance = "https://www.w
 
     # bind the codes to the descriptions and the links
     atc_row <- bind_cols(
-      codes = atc_codes[2:length(atc_codes)],
+      code = atc_codes[2:length(atc_codes)],
       description = xml_atc_5chemicalsubstance %>% html_elements("a") %>% html_text(),
       link = xml_atc_5chemicalsubstance %>% html_elements("a") %>% html_attr("href") %>% 
         str_replace(pattern = "^\\.\\/", replacement = url_whocc_atc)
@@ -160,48 +160,48 @@ whocc_atc_5chemicalsubstance <- function(url_5chemicalsubstance = "https://www.w
 }
 
 # # works great
-# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$links[[9]])
+# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$link[[9]])
 # 
 # # throws an error because there are no drugs in this category
-# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$links[[10]])
+# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$link[[10]])
 # 
 # # throws an error because there are blank spaces between rows
-# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$links[[13]])
+# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$link[[13]])
 # 
 # # throws an error because ATC code is blank, but there are rows with DDD data
-# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$links[[431]])
+# whocc_atc_5chemicalsubstance(df_atc_4chemicalsubgroup$link[[431]])
 ```
 
 ```{r, include = FALSE}
 # # good for debugging if some entries do not work
 # df_atc_5chem <- list()
-# df_atc_5chem$l01 <- lapply(df_atc_4chemicalsubgroup$links[  1:100], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l02 <- lapply(df_atc_4chemicalsubgroup$links[101:200], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l03 <- lapply(df_atc_4chemicalsubgroup$links[201:300], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l04 <- lapply(df_atc_4chemicalsubgroup$links[301:400], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l05 <- lapply(df_atc_4chemicalsubgroup$links[401:500], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l06 <- lapply(df_atc_4chemicalsubgroup$links[501:600], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l07 <- lapply(df_atc_4chemicalsubgroup$links[601:700], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l08 <- lapply(df_atc_4chemicalsubgroup$links[701:800], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l09 <- lapply(df_atc_4chemicalsubgroup$links[801:900], whocc_atc_5chemicalsubstance)
-# df_atc_5chem$l10 <- lapply(df_atc_4chemicalsubgroup$links[901:922], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l01 <- lapply(df_atc_4chemicalsubgroup$link[  1:100], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l02 <- lapply(df_atc_4chemicalsubgroup$link[101:200], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l03 <- lapply(df_atc_4chemicalsubgroup$link[201:300], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l04 <- lapply(df_atc_4chemicalsubgroup$link[301:400], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l05 <- lapply(df_atc_4chemicalsubgroup$link[401:500], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l06 <- lapply(df_atc_4chemicalsubgroup$link[501:600], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l07 <- lapply(df_atc_4chemicalsubgroup$link[601:700], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l08 <- lapply(df_atc_4chemicalsubgroup$link[701:800], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l09 <- lapply(df_atc_4chemicalsubgroup$link[801:900], whocc_atc_5chemicalsubstance)
+# df_atc_5chem$l10 <- lapply(df_atc_4chemicalsubgroup$link[901:922], whocc_atc_5chemicalsubstance)
 ```
 
 ```{r}
-df_atc_5chemicalsubstance <- bind_rows(lapply(df_atc_4chemicalsubgroup$links, whocc_atc_5chemicalsubstance))
+df_atc_5chemicalsubstance <- bind_rows(lapply(df_atc_4chemicalsubgroup$link, whocc_atc_5chemicalsubstance))
 ```
 
 ## Save Dataset
 
 ```{r}
-writexl::write_xlsx(
-  path = paste0("./2023_WHOCC_ATC_index_", Sys.Date(), ".xlsx"),
-  x = list(
-    "1 Anatomical" = df_atc_1anatomical,
-    "2 Therapeutic" = df_atc_2therapeutic,
-    "3 Pharmacological" = df_atc_3pharmacological,
-    "4 Chemical Subgroup" = df_atc_4chemicalsubgroup,
-    "5 Chemical Substance" = df_atc_5chemicalsubstance
-    )
-  )
+# writexl::write_xlsx(
+#   path = paste0("./2023_WHOCC_ATC_index_", Sys.Date(), ".xlsx"),
+#   x = list(
+#     "1 Anatomical" = df_atc_1anatomical,
+#     "2 Therapeutic" = df_atc_2therapeutic,
+#     "3 Pharmacological" = df_atc_3pharmacological,
+#     "4 Chemical Subgroup" = df_atc_4chemicalsubgroup,
+#     "5 Chemical Substance" = df_atc_5chemicalsubstance
+#     )
+#   )
 ```
